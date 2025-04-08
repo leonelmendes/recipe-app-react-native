@@ -2,7 +2,7 @@
 
 Bem-vindo ao **Recipe App**, um aplicativo demonstrativo desenvolvido com **React Native** usando o framework **Expo**. O objetivo deste projeto é consumir a API pública **TheMealDB** para listar, buscar e visualizar receitas de diferentes categorias.
 
-Este projeto foi desenvolvido por **Leonel Mendes** e **[Nome do segundo desenvolvedor]**, como parte de um trabalho colaborativo em ambiente educacional.
+Este projeto foi desenvolvido por **Leonel Francisco - 2024178** e **António Gomes - 2024488**, como parte de um trabalho colaborativo em ambiente educacional.
 
 ![Platform](https://img.shields.io/badge/platform-ReactNative-blue.svg)
 ![Framework](https://img.shields.io/badge/framework-Expo-green.svg)  
