@@ -5,6 +5,7 @@ import { searchMealDetail } from '@/app/services/recipeApi'
 import { Meal } from './models/Meals'
 import YoutubePlayer from "react-native-youtube-iframe";
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecipeDetail() {
   const { recipe } = useLocalSearchParams();
@@ -79,7 +80,8 @@ export default function RecipeDetail() {
   const tags = meal.strTags ? meal.strTags.split(',') : [];
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
       <TouchableOpacity onPress={() => router.back()} style={{ padding: 20}}>
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
@@ -185,7 +187,8 @@ export default function RecipeDetail() {
           </TouchableOpacity>
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

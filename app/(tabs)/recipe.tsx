@@ -1,12 +1,6 @@
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
-import React, { useState } from 'react';
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  interpolate,
-  Extrapolate,
-} from 'react-native-reanimated';
+import React, { useEffect, useState } from 'react';
+import Animated, {useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolate,} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { searchMealsByName } from '@/app/services/recipeApi';
@@ -19,6 +13,34 @@ const recipe = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Executa uma vez ao montar
+  useEffect(() => {
+    fetchInitialRecipes();
+  }, []);
+
+  // Executa a cada letra digitada
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchQuery.trim() !== '') {
+        handleSearch();
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
+  
+  const fetchInitialRecipes = async () => {
+    setLoading(true);
+    try {
+      const results = await searchMealsByName(''); // busca todas
+      setSearchResults(results || []);
+    } catch (error) {
+      console.error('Erro ao carregar receitas iniciais:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -66,8 +88,6 @@ const recipe = () => {
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
-          onSearchPress={handleSearch}
           style={styles.searchBar}
         />
 

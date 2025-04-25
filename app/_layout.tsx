@@ -5,7 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import RecipeDetail from './recipeDetail';
 import Ionicons from '@expo/vector-icons';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
+import { UserProvider } from './context/UserContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -26,13 +27,18 @@ export default function RootLayout() {
   }
 
   return (
+    <UserProvider>
+      <>
     <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ presentation: "modal"}}/>
         <Stack.Screen name="register" options={{ presentation: "modal"}} />
         <Stack.Screen name="recipeDetail" options={{ headerShown: false }} />
         <Stack.Screen name="editProfile" options={{ headerShown: false }} />
-      </Stack>
+    </Stack>
+    <Toast position='bottom' visibilityTime={2000}/>
+    </>
+    </UserProvider>
   );
 }
 

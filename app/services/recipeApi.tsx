@@ -58,8 +58,8 @@ export const searchAllMeals = async () => {
   }
   export const search4AllMeals = async (limit: number = 4): Promise<Meal[]> => {
     try {
-      // Pesquisa por todas as receitas (usando a letra 'a' como filtro amplo)
-      const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?f=a')
+      // Pesquisa por todas as receitas (usando a letra 's' como filtro amplo)
+      const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?f=s')
       const data = await response.json()
       return data.meals?.slice(0, limit) || [] // Retorna no máximo 'limit' receitas
     } catch (error) {
@@ -67,3 +67,9 @@ export const searchAllMeals = async () => {
       return []
     }
   }
+  
+  export const getAllCategories = async (): Promise<Category[]> => {
+    const res = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php');
+    const data = await res.json();
+    return data.categories;
+  };

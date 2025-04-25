@@ -5,8 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
-  onSubmitEditing: () => void;
-  onSearchPress: () => void;
   style?: any;
   placeholder?: string;
 }
@@ -14,8 +12,6 @@ interface SearchBarProps {
 const SearchBar = ({ 
   value, 
   onChangeText, 
-  onSubmitEditing, 
-  onSearchPress,
   style,
   placeholder = 'Search recipe' 
 }: SearchBarProps) => {
@@ -26,16 +22,10 @@ const SearchBar = ({
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
-        onSubmitEditing={onSubmitEditing}
         placeholder={placeholder}
         placeholderTextColor="#888"
         returnKeyType="search"
       />
-      {value ? (
-        <TouchableOpacity onPress={onSearchPress}>
-          <Ionicons name="send" size={20} color="#E74C3C" />
-        </TouchableOpacity>
-      ) : null}
     </View>
   );
 };

@@ -5,11 +5,20 @@ import { useRouter } from 'expo-router'
 import { search4AllMeals } from '@/app/services/recipeApi'
 import { Meal } from '@/app/models/Meals'
 import RecipeCard from '@/components/RecipeCard'
+import { getProfile, signOut } from '../lib/auth'
+import { useUser } from '../context/UserContext'
 
 const ProfileScreen = () => {
+  const { user, logout } = useUser()
   const router = useRouter()
   const [recipes, setRecipes] = useState<Meal[]>([])
   const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<{ name: string; email: string } | null>(null)
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/'); // volta para tela inicial
+  };
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -24,6 +33,18 @@ const ProfileScreen = () => {
     }
     loadRecipes()
   }, [])
+
+  useEffect(() => {
+    (async () => {
+      const data = await getProfile();
+      setProfile(data);
+      setLoading(false);
+    })();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#E74C3C" />;
+  }
 
   const handleEditProfile = () => {
     router.push('../editProfile')
@@ -45,15 +66,19 @@ const ProfileScreen = () => {
             style={styles.avatar}
             source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
           />
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={handleEditProfile}
-          >
-            <Text style={styles.editText}>Edit profile</Text>
-          </TouchableOpacity>
-          <Text style={styles.name}>Alessandra Blair</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}> 
+            <TouchableOpacity style={styles.editButton} onPress={() => router.push('../editProfile')}>
+              <Text style={styles.editText}>Edit profile</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.editButton} onPress={handleLogout}>
+              <Text style={styles.editText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.name}>{user?.name}</Text>
+          <Text style={styles.bio}>{user?.email}</Text>
           <Text style={styles.bio}>
-            Hello world! I'm Alessandra Blair. I'm from Italy 🇮🇹 I love cooking so much!
+            Hello world! I'm {profile?.name}. I'm from Italy 🇮🇹 I love cooking so much!
           </Text>
 
           {/* Stats */}
@@ -121,7 +146,7 @@ const styles = StyleSheet.create({
   profileSection: {
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   avatar: {
     width: 120,
@@ -135,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
-    marginBottom: 15,
+    marginBottom: 1,
   },
   editText: {
     color: '#E74C3C',

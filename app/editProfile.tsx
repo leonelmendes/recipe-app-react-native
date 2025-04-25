@@ -1,21 +1,63 @@
 // app/screens/EditProfileScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getProfile, updateProfile } from './lib/auth';
+import { useUser } from './context/UserContext';
+import { supabase } from './lib/supabase';
 
 export default function EditProfileScreen() {
-  const [name, setName] = useState('Alessandra Blair');
-  const [email, setEmail] = useState('alessandra@example.com');
+  const { user, refreshUser } = useUser();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
-  const handleSave = () => {
-    // Aqui você enviaria os dados para sua API/backend
-    console.log('Dados salvos:', { name, email, password });
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert('Erro', 'O nome não pode estar vazio.');
+      return;
+    }
+
+    // Atualizar nome
+    const { error: nameError } = await supabase
+      .from('profiles')
+      .update({ name })
+      .eq('id', user?.id);
+
+    if (nameError) {
+      return Alert.alert('Erro ao atualizar nome', nameError.message);
+    }
+
+    // Atualizar senha se preenchida
+    if (password) {
+      const { error: passError } = await supabase.auth.updateUser({ password });
+      if (passError) return Alert.alert('Erro ao alterar senha', passError.message);
+    }
+
+    await refreshUser();
+    Alert.alert('Sucesso', 'Dados atualizados com sucesso.');
+    router.back();
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
+        <Ionicons name="arrow-back" size={24} color="#333" />
+      </TouchableOpacity>
+      <View >
       <Text style={styles.title}>Editar Perfil</Text>
 
+      <Text style={styles.label}>Nome</Text>
       <TextInput
         style={styles.input}
         placeholder="Nome"
@@ -24,7 +66,7 @@ export default function EditProfileScreen() {
       />
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: '#f2f2f2', color: '#777' }]}
         placeholder="E-mail"
         keyboardType="email-address"
         value={email}
@@ -42,7 +84,8 @@ export default function EditProfileScreen() {
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Salvar</Text>
       </TouchableOpacity>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -64,4 +107,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  label: { fontSize: 16, fontWeight: '500' },
 });

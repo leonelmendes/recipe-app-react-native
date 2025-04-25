@@ -1,15 +1,59 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack, router } from "expo-router";
+import { Link, Stack, router, useNavigation } from "expo-router";
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Colors } from "../constants/Colors";
 import InputRegister from "../components/InputRegister";
 import SocialLoginButton from "../components/SocialLoginButton";
+import { signUpWithEmail } from "./lib/auth";
+import Toast from "react-native-toast-message";
 
 const Register = () => {
+  const navigate = useNavigation();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Acção requerida',
+        text2: 'Por favor, preencha todos os campos.',
+      });
+      return;
+    }
+    if (password !== confirmPassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Acção requerida',
+        text2: '"As senhas não coincidem.',
+      });
+      return;
+    }
+
+    const {data, error} = await signUpWithEmail(name, email, password);
+
+    if (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao criar conta',
+        text2: error.message,
+      });
+      return;
+    } else {
+      Toast.show({
+        type: 'success',
+        text1: 'Conta criada com sucesso',
+        text2: 'Você pode fazer login agora.',
+      });
+      router.dismissAll();
+      router.push("/login");
+    }
+
+  }
   return (
     <>
       <Stack.Screen options={{
@@ -22,12 +66,13 @@ const Register = () => {
 
       <View style={styles.container}>
         <Text style={styles.title}>Criar Uma Conta</Text>
-        <InputRegister placeholder="Digite o seu Nome Completo" placeholderTextColor={Colors.gray} autoCapitalize="none" />
-        <InputRegister placeholder="Digite o seu Email" placeholderTextColor={Colors.gray} autoCapitalize="none" keyboardType="email-address" />
-        <InputRegister placeholder="Digite a sua Password" placeholderTextColor={Colors.gray} secureTextEntry={true} />
-        <InputRegister placeholder="Confirme a sua Password" placeholderTextColor={Colors.gray} secureTextEntry={true} />
+        <InputRegister onChangeText={setName} value={name} placeholder="Digite o seu Nome Completo" placeholderTextColor={Colors.gray} autoCapitalize="none" />
+        <InputRegister onChangeText={setEmail} value={email}  placeholder="Digite o seu Email" placeholderTextColor={Colors.gray} autoCapitalize="none" keyboardType="email-address" />
+        <InputRegister onChangeText={setPassword} value={password}  placeholder="Digite a sua Password" placeholderTextColor={Colors.gray} secureTextEntry={true} />
+        <InputRegister onChangeText={setConfirmPassword} value={confirmPassword}  placeholder="Confirme a sua Password" placeholderTextColor={Colors.gray} secureTextEntry={true} />
 
-        <TouchableOpacity style={styles.btnCriarConta}>
+        <TouchableOpacity style={styles.btnCriarConta} onPress={handleRegister}>
+          <Ionicons name="checkmark" size={20} color="white" style={{ marginRight: 10 }} />
           <Text style={styles.txtCriarConta}>Crian Conta</Text>
         </TouchableOpacity>
 
@@ -43,6 +88,7 @@ const Register = () => {
 
         <SocialLoginButton emailHref={"/login"} />
       </View>
+      <Toast position='bottom' visibilityTime={2000}/>
     </>
   );
 };
@@ -64,6 +110,8 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   btnCriarConta: {
+    flexDirection: "row",
+    justifyContent: "center",
     backgroundColor: Colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 24,

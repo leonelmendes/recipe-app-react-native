@@ -6,21 +6,34 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { listCategories, searchAllMeals, searchMealsByCategory } from '@/app/services/recipeApi'
 import { Category, Meal } from '../models/Meals'
 import { useRouter } from 'expo-router';
+import { getProfile } from '../lib/auth'
+import { useUser } from '../context/UserContext'
+import Toast from 'react-native-toast-message'
 
 type Props = {}
 
 const Home = (props: Props) => {
+  const { user } = useUser();
+  const [name, setName] = useState('')
   const router = useRouter();
   const [meals, setMeals] = useState<Meal[]>([])
+  const [popularMeals, setPopularMeals] = useState<Meal[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
+    (async () => {
+      const profile = await getProfile();
+      if (profile?.name) setName(profile.name);
+    })();
+  }, []);
+
+  useEffect(() => {
     const loadMeals = async () => {
       try {
         const data = await searchAllMeals();
-        setMeals(data);
+        setPopularMeals(data);
       } catch (error) {
         console.error('Error loading meals:', error);
       } finally {
@@ -28,29 +41,47 @@ const Home = (props: Props) => {
       }
     };
     loadMeals();
-
-    const fetchCategories = async () => {
-          try {
-            const categoriesFromApi = await listCategories();
-            // Adicionamos 'All' como primeira categoria manualmente
-            const allCategories = [
-              {
-                idCategory: '0',
-                strCategory: 'All',
-                strCategoryThumb: 'https://www.themealdb.com/images/media/meals/1543774956.jpg',
-                strCategoryDescription: 'All categories'
-              },
-              ...categoriesFromApi
-            ];
-            setCategories(allCategories);
-          } catch (error) {
-            console.error('Error fetching categories:', error);
-          } finally {
-            setLoading(false);
-          }
-        }
-        fetchCategories();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const categoriesFromApi = await listCategories();
+      // Adicionamos 'All' como primeira categoria manualmente
+      const allCategories = [
+        {
+          idCategory: '0',
+          strCategory: 'All',
+          strCategoryThumb: 'https://www.themealdb.com/images/media/meals/1543774956.jpg',
+          strCategoryDescription: 'All categories'
+        },
+        ...categoriesFromApi
+      ];
+      setCategories(allCategories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleCategoryPress = async (category: Category) => {
+      setSelectedCategory(category.strCategory);
+      setLoading(true);
+      try {
+        if (category.strCategory === 'All') {
+          const all = await searchAllMeals();
+          setMeals(all);
+        } else {
+          const filtered = await searchMealsByCategory(category.strCategory);
+          setMeals(filtered);
+        }
+      } catch (error) {
+        console.error('Erro ao filtrar receitas:', error);
+      } finally {
+        setLoading(false);
+      }
+  }
 
   const trendingRecipes = [
     { id: '1', title: 'Indonesian Chicken Burger', author: 'Jackson Cuif', image: require('../../assets/images/geek-salad.jpg') },
@@ -67,7 +98,7 @@ const Home = (props: Props) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header com saudação */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Hello, User</Text>
+          <Text style={styles.greeting}>Hello, {user?.name}</Text>
           <Text style={styles.subtitle}>Find best recipes</Text>
         </View>
 
@@ -93,7 +124,7 @@ const Home = (props: Props) => {
                           styles.categoryButton,
                           selectedCategory === category.strCategory && styles.activeCategory
                         ]}
-                        onPress={() => setSelectedCategory(category.strCategory)}
+                        onPress={() => handleCategoryPress(category)}
                       >
                         <Image 
                           source={{ uri: category.strCategoryThumb }} 
@@ -124,10 +155,9 @@ const Home = (props: Props) => {
                 onPress={() => router.push({ 
                 pathname: '../recipeDetail', 
                 params: { recipe: item.idMeal }})}>
-                   <RecipeCard 
-                image={{ uri: item.strMealThumb }}
-                title={item.strMeal}/>
-                </TouchableOpacity>
+                <RecipeCard image={{ uri: item.strMealThumb }}
+                  title={item.strMeal}/>
+              </TouchableOpacity>
             )}
           />
         )}
@@ -138,7 +168,7 @@ const Home = (props: Props) => {
           <ActivityIndicator size="large" color="#E74C3C" style={styles.loader} />
         ) : (
           <FlatList
-            data={meals}
+            data={popularMeals}
             keyExtractor={(item) => item.idMeal}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -171,7 +201,7 @@ const Home = (props: Props) => {
                   keyExtractor={item => item.id}
                   contentContainerStyle={styles.creatorsContainer}
                 />
-
+        <Toast position='bottom' visibilityTime={2000}/>
       </ScrollView>
     </SafeAreaView>
   )
