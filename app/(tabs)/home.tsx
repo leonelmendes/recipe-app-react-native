@@ -35,7 +35,12 @@ const Home = (props: Props) => {
         const data = await searchAllMeals();
         setPopularMeals(data);
       } catch (error) {
-        console.error('Error loading meals:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Error loading meals.',
+        });
+        //console.error('Error loading meals:', error);
       } finally {
         setLoading(false);
       }
@@ -59,7 +64,12 @@ const Home = (props: Props) => {
       ];
       setCategories(allCategories);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Error fetching categories.',
+      });
+      //console.error('Error fetching categories:', error);
     } finally {
       setLoading(false);
     }
@@ -201,8 +211,8 @@ const Home = (props: Props) => {
                   keyExtractor={item => item.id}
                   contentContainerStyle={styles.creatorsContainer}
                 />
-        <Toast position='bottom' visibilityTime={2000}/>
       </ScrollView>
+      <Toast position='bottom' visibilityTime={2000}/>
     </SafeAreaView>
   )
 }

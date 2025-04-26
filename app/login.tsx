@@ -45,9 +45,9 @@ const login = (props: Props) => {
         text1: 'Login realizado com sucesso',
         text2: 'Você está logado.'
       });
-      console.log('Usuário logado:', data);
-      console.log('Usuário logado:', data.user);
-      
+      /*console.log('Usuário logado:', data);
+      console.log('Usuário logado:', data.user);*/
+      delay(2000)
       await refreshUser();
       router.dismissAll();
       router.replace('/home');
@@ -134,3 +134,7 @@ const styles = StyleSheet.create({
         marginBottom: 30,
       }
 })
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

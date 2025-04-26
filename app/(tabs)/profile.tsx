@@ -7,6 +7,7 @@ import { Meal } from '@/app/models/Meals'
 import RecipeCard from '@/components/RecipeCard'
 import { getProfile, signOut } from '../lib/auth'
 import { useUser } from '../context/UserContext'
+import Toast from 'react-native-toast-message'
 
 const ProfileScreen = () => {
   const { user, logout } = useUser()
@@ -26,7 +27,12 @@ const ProfileScreen = () => {
         const data = await search4AllMeals(4) // Busca 4 receitas
         setRecipes(data)
       } catch (error) {
-        console.error('Error loading recipes:', error)
+        //console.error('Error loading recipes:', error)
+        Toast.show({
+          type: 'error',
+          text1: 'Error loading recipes',
+          text2: 'There was an error loading the recipes. Please try again later.',
+        })
       } finally {
         setLoading(false)
       }
@@ -78,7 +84,7 @@ const ProfileScreen = () => {
           <Text style={styles.name}>{user?.name}</Text>
           <Text style={styles.bio}>{user?.email}</Text>
           <Text style={styles.bio}>
-            Hello world! I'm {profile?.name}. I'm from Italy 🇮🇹 I love cooking so much!
+            Hello world! I'm {user?.name}. I'm from Italy 🇮🇹 I love cooking so much!
           </Text>
 
           {/* Stats */}
@@ -128,6 +134,7 @@ const ProfileScreen = () => {
           </View>
         )}
       </ScrollView>
+      <Toast position='bottom' visibilityTime={2000} />
     </SafeAreaView>
   )
 }
@@ -171,13 +178,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
+    marginTop: 10,
   },
   bio: {
     textAlign: 'center',
     color: '#666',
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     paddingHorizontal: 20,
   },
   statsContainer: {

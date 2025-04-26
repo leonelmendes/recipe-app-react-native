@@ -7,6 +7,7 @@ import InputRegister from "../components/InputRegister";
 import SocialLoginButton from "../components/SocialLoginButton";
 import { signUpWithEmail } from "./lib/auth";
 import Toast from "react-native-toast-message";
+import { supabase } from "./lib/supabase";
 
 const Register = () => {
   const navigate = useNavigation();
@@ -34,7 +35,15 @@ const Register = () => {
       return;
     }
 
-    const {data, error} = await signUpWithEmail(name, email, password);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name, // o que o usuário digitar
+        },
+      },
+    });
 
     if (error) {
       Toast.show({
@@ -49,6 +58,7 @@ const Register = () => {
         text1: 'Conta criada com sucesso',
         text2: 'Você pode fazer login agora.',
       });
+      delay(2000);
       router.dismissAll();
       router.push("/login");
     }
@@ -144,5 +154,9 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   }
 });
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 export default Register;

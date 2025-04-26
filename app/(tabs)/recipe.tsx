@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { searchMealsByName } from '@/app/services/recipeApi';
 import { Meal } from '@/app/models/Meals';
 import SearchBar from '@/components/SearchBar';
+import Toast from 'react-native-toast-message';
 
 const recipe = () => {
   const router = useRouter();
@@ -36,7 +37,12 @@ const recipe = () => {
       const results = await searchMealsByName(''); // busca todas
       setSearchResults(results || []);
     } catch (error) {
-      console.error('Erro ao carregar receitas iniciais:', error);
+      //console.error('Erro ao carregar receitas iniciais:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao carregar receitas',
+        text2: 'Houve um erro ao carregar as receitas iniciais. Tente novamente mais tarde.',
+      });
     } finally {
       setLoading(false);
     }
@@ -50,7 +56,12 @@ const recipe = () => {
       const results = await searchMealsByName(searchQuery);
       setSearchResults(results || []);
     } catch (error) {
-      console.error('Search error:', error);
+      //console.error('Search error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao buscar receitas',
+        text2: 'Houve um erro ao buscar as receitas. Tente novamente mais tarde.',
+      });
     } finally {
       setLoading(false);
     }
@@ -135,6 +146,7 @@ const recipe = () => {
           </>
         )}
       </Animated.ScrollView>
+      <Toast position='bottom' visibilityTime={2000} />
     </SafeAreaView>
   );
 };

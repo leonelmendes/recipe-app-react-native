@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getProfile, updateProfile } from './lib/auth';
 import { useUser } from './context/UserContext';
 import { supabase } from './lib/supabase';
+import Toast from 'react-native-toast-message';
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useUser();
@@ -14,6 +15,8 @@ export default function EditProfileScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const [showDelayedText, setShowDelayedText] =
+        useState(false);
 
   useEffect(() => {
     if (user) {
@@ -24,28 +27,47 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Erro', 'O nome não pode estar vazio.');
+      Toast.show({
+        type: 'error',
+        text1: 'Erro',
+        text2: 'O nome não pode estar vazio.',
+      });
       return;
     }
 
-    // Atualizar nome
-    const { error: nameError } = await supabase
-      .from('profiles')
-      .update({ name })
-      .eq('id', user?.id);
+     // Atualizar o nome no metadata
+    const { error: metadataError } = await supabase.auth.updateUser({
+      data: { name },
+    });
 
-    if (nameError) {
-      return Alert.alert('Erro ao atualizar nome', nameError.message);
+    if (metadataError) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao atualizar nome',
+        text2: metadataError.message,
+      });
+      return;
     }
 
     // Atualizar senha se preenchida
     if (password) {
       const { error: passError } = await supabase.auth.updateUser({ password });
-      if (passError) return Alert.alert('Erro ao alterar senha', passError.message);
+      if (passError)
+        return Toast.show ({
+          type: 'error',
+          text1: 'Erro ao alterar senha',
+          text2: passError.message,
+        });
     }
 
     await refreshUser();
-    Alert.alert('Sucesso', 'Dados atualizados com sucesso.');
+    Toast.show({
+      type: 'success',
+      text1: 'Sucesso',
+      text2: 'Dados atualizados com sucesso.',
+    });
+    await delay(2000); // Espera 2 segundos antes de voltar
+    //Alert.alert('Sucesso', 'Dados atualizados com sucesso.');
     router.back();
   };
 
@@ -69,6 +91,8 @@ export default function EditProfileScreen() {
         style={[styles.input, { backgroundColor: '#f2f2f2', color: '#777' }]}
         placeholder="E-mail"
         keyboardType="email-address"
+        editable={false}
+        selectTextOnFocus={false}
         value={email}
         onChangeText={setEmail}
       />
@@ -76,6 +100,7 @@ export default function EditProfileScreen() {
       <TextInput
         style={styles.input}
         placeholder="Nova senha"
+        placeholderTextColor={'#999'}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -85,6 +110,7 @@ export default function EditProfileScreen() {
         <Text style={styles.buttonText}>Salvar</Text>
       </TouchableOpacity>
       </View>
+      <Toast position='bottom' visibilityTime={2000} />
     </SafeAreaView>
   );
 }
@@ -109,3 +135,7 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   label: { fontSize: 16, fontWeight: '500' },
 });
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
